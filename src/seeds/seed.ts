@@ -1,4 +1,4 @@
-import { AppDataSource } from '../data-source';
+import { AppDataSource } from '../config/data-source';
 import { User } from '../models/User';
 import { Project, ProjectStatus } from '../models/Project';
 import { Task, TaskStatus, TaskPriority } from '../models/Task';
