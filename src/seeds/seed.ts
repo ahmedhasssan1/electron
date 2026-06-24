@@ -1,5 +1,5 @@
 import { AppDataSource } from '../config/data-source';
-import { User } from '../models/User';
+import { User, UserRole } from '../models/User';
 import { Project, ProjectStatus } from '../models/Project';
 import { Task, TaskStatus, TaskPriority } from '../models/Task';
 import bcrypt from 'bcrypt';
@@ -21,6 +21,7 @@ async function seed() {
     name: 'Ahmed',
     email: 'ahmed@example.com',
     password: hashedPassword,
+    role: UserRole.ADMIN,
   });
   const user2 = userRepo.create({
     name: 'Sara',
@@ -72,14 +73,14 @@ async function seed() {
     taskRepo.create({
       title: 'Setup CI/CD',
       description: 'Configure GitHub Actions',
-      status: TaskStatus.TODO,
+      status: TaskStatus.PENDING,
       priority: TaskPriority.MEDIUM,
       project: project1,
     }),
     taskRepo.create({
       title: 'User authentication',
       description: 'Login and registration flow',
-      status: TaskStatus.TODO,
+      status: TaskStatus.PENDING,
       priority: TaskPriority.HIGH,
       project: project2,
       dueDate: '2026-07-15',

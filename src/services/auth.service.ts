@@ -1,28 +1,39 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
-import { userService } from './user.service';
+import { UserService } from './user.service';
+import { UserRole } from '../models/User';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret';
 
-export const authService = {
+export interface JwtPayload {
+  id: number;
+  email: string;
+  role: UserRole;
+}
+
+export class AuthService {
+  constructor(private readonly userService: UserService) {}
+
   async login(
     email: string,
     password: string,
   ): Promise<{ token: string } | null> {
-    const user = await userService.findByEmail(email);
+    const user = await this.userService.findByEmail(email);
     if (!user) return null;
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return null;
 
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
-      expiresIn: '1h',
-    });
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '1h' },
+    );
 
     return { token };
-  },
+  }
 
-  verifyToken(token: string): { id: number; email: string } {
-    return jwt.verify(token, JWT_SECRET) as { id: number; email: string };
-  },
-};
+  verifyToken(token: string): JwtPayload {
+    return jwt.verify(token, JWT_SECRET) as JwtPayload;
+  }
+}

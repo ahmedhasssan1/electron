@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
-import { projectService } from '../services/project.service';
+import { projectService } from '../services';
 import {
   createProjectSchema,
   updateProjectSchema,
   projectFilterSchema,
-} from '../dto/project.dto';
+} from '../dto/project';
 import { parsePagination } from '../utils/pagination';
 
 export const projectController = {

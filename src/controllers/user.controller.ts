@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { userService } from '../services/user.service';
-import { createUserSchema, updateUserSchema } from '../dto/user.dto';
+import { userService } from '../services';
+import { createUserSchema, updateUserSchema } from '../dto/user';
 import { parsePagination } from '../utils/pagination';
 
 export const userController = {
@@ -26,7 +26,7 @@ export const userController = {
       return;
     }
 
-    const { name, email, password } = result.data;
+    const { name, email, password, role } = result.data;
 
     const existing = await userService.findByEmail(email);
     if (existing) {
@@ -34,7 +34,7 @@ export const userController = {
       return;
     }
 
-    const user = await userService.create({ name, email, password });
+    const user = await userService.create({ name, email, password, role });
     res.status(201).json(user);
   },
 

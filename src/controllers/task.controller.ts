@@ -1,12 +1,11 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
-import { taskService } from '../services/task.service';
-import { projectService } from '../services/project.service';
+import { taskService, projectService } from '../services';
 import {
   createTaskSchema,
   updateTaskSchema,
   taskFilterSchema,
-} from '../dto/task.dto';
+} from '../dto/task';
 import { parsePagination } from '../utils/pagination';
 
 export const taskController = {
@@ -68,5 +67,24 @@ export const taskController = {
       return;
     }
     res.status(204).send();
+  },
+  async getProjectTasks(req: AuthRequest, res: Response): Promise<void> {
+    const projectId = Number(req.params.projectId);
+    const project = await projectService.findById(projectId);
+    if (!project) {
+      res.status(404).json({ message: 'Project not found' });
+      return;
+    }
+
+    const filterResult = taskFilterSchema.safeParse(req.query);
+    const filters = filterResult.success ? filterResult.data : {};
+    const pagination = parsePagination(req.query);
+
+    const result = await taskService.findAllByProject(
+      projectId,
+      filters,
+      pagination,
+    );
+    res.json(result);
   },
 };

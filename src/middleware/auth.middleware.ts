@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import { authService } from '../services/auth.service';
+import { authService } from '../services';
+import { UserRole } from '../models/User';
 
 export interface AuthRequest extends Request {
-  user?: { id: number; email: string };
+  user?: { id: number; email: string; role: UserRole };
 }
 
 export const authMiddleware = (
@@ -26,4 +27,20 @@ export const authMiddleware = (
   } catch {
     res.status(401).json({ message: 'Invalid or expired token' });
   }
+};
+
+export const requireRole = (...roles: UserRole[]) => {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      res.status(401).json({ message: 'Authentication required' });
+      return;
+    }
+
+    if (!roles.includes(req.user.role)) {
+      res.status(403).json({ message: 'Insufficient permissions' });
+      return;
+    }
+
+    next();
+  };
 };

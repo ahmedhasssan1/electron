@@ -1,62 +1,39 @@
-import { AppDataSource } from '../config/database';
-import { CreateUserDTO, UpdateUserDTO } from '../dto/user.dto';
+import { IUserRepository } from '../repositories/user.repository';
+import { CreateUserDTO, UpdateUserDTO } from '../dto/user';
 import { User } from '../models/User';
 import { PaginationParams, PaginatedResult } from '../utils/pagination';
 import bcrypt from 'bcrypt';
 
-const userRepository = AppDataSource.getRepository(User);
 const SALT_ROUNDS = 10;
 
-export const userService = {
+export class UserService {
+  constructor(private readonly userRepo: IUserRepository) {}
+
   async findAll(params: PaginationParams): Promise<PaginatedResult<User>> {
-    const [data, total] = await userRepository.findAndCount({
-      order: { [params.sortBy]: params.sortOrder },
-      skip: (params.page - 1) * params.limit,
-      take: params.limit,
-    });
-
-    const totalPages = Math.ceil(total / params.limit);
-
-    return {
-      data,
-      meta: {
-        page: params.page,
-        limit: params.limit,
-        total,
-        totalPages,
-        hasNextPage: params.page < totalPages,
-        hasPrevPage: params.page > 1,
-      },
-    };
-  },
+    return this.userRepo.findAll({}, params);
+  }
 
   async findById(id: number): Promise<User | null> {
-    return userRepository.findOneBy({ id });
-  },
+    return this.userRepo.findById(id);
+  }
 
   async findByEmail(email: string): Promise<User | null> {
-    return userRepository.findOneBy({ email });
-  },
+    return this.userRepo.findByEmail(email);
+  }
 
   async create(data: CreateUserDTO): Promise<User> {
     const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
-    const user = userRepository.create({
+    return this.userRepo.create({
       ...data,
       password: hashedPassword,
-    });
-    return userRepository.save(user);
-  },
+    } as Partial<User>);
+  }
 
   async update(id: number, data: UpdateUserDTO): Promise<User | null> {
-    const user = await userRepository.findOneBy({ id });
-    if (!user) return null;
-
-    userRepository.merge(user, data);
-    return userRepository.save(user);
-  },
+    return this.userRepo.update(id, data as Partial<User>);
+  }
 
   async delete(id: number): Promise<boolean> {
-    const result = await userRepository.delete(id);
-    return result.affected !== 0;
-  },
-};
+    return this.userRepo.delete(id);
+  }
+}

@@ -1,16 +1,16 @@
-import { AppDataSource } from '../config/database';
+import { IBaseRepository } from '../repositories/interfaces/base-repository.interface';
 import { Project } from '../models/Project';
 import {
   CreateProjectDTO,
   UpdateProjectDTO,
   ProjectFilterDTO,
-} from '../dto/project.dto';
+} from '../dto/project';
 import { FindOptionsWhere } from 'typeorm';
 import { PaginationParams, PaginatedResult } from '../utils/pagination';
 
-const projectRepository = AppDataSource.getRepository(Project);
+export class ProjectService {
+  constructor(private readonly projectRepo: IBaseRepository<Project>) {}
 
-export const projectService = {
   async findAll(
     filters: ProjectFilterDTO,
     params: PaginationParams,
@@ -21,47 +21,22 @@ export const projectService = {
       Object.assign(where, { status: filters.status });
     }
 
-    const [data, total] = await projectRepository.findAndCount({
-      where,
-      order: { [params.sortBy]: params.sortOrder },
-      skip: (params.page - 1) * params.limit,
-      take: params.limit,
-    });
-
-    const totalPages = Math.ceil(total / params.limit);
-
-    return {
-      data,
-      meta: {
-        page: params.page,
-        limit: params.limit,
-        total,
-        totalPages,
-        hasNextPage: params.page < totalPages,
-        hasPrevPage: params.page > 1,
-      },
-    };
-  },
+    return this.projectRepo.findAll(where, params);
+  }
 
   async findById(id: number): Promise<Project | null> {
-    return projectRepository.findOneBy({ id });
-  },
+    return this.projectRepo.findById(id);
+  }
 
   async create(data: CreateProjectDTO): Promise<Project> {
-    const project = projectRepository.create(data as Partial<Project>);
-    return projectRepository.save(project);
-  },
+    return this.projectRepo.create(data as Partial<Project>);
+  }
 
   async update(id: number, data: UpdateProjectDTO): Promise<Project | null> {
-    const project = await projectRepository.findOneBy({ id });
-    if (!project) return null;
-
-    projectRepository.merge(project, data as Partial<Project>);
-    return projectRepository.save(project);
-  },
+    return this.projectRepo.update(id, data as Partial<Project>);
+  }
 
   async delete(id: number): Promise<boolean> {
-    const result = await projectRepository.delete(id);
-    return result.affected !== 0;
-  },
-};
+    return this.projectRepo.delete(id);
+  }
+}
