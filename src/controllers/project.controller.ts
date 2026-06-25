@@ -1,4 +1,5 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AuthRequest } from '../middleware/auth.middleware';
 import { projectService } from '../services';
 import {
   createProjectSchema,
@@ -8,38 +9,50 @@ import {
 import { parsePagination } from '../utils/pagination';
 
 export const projectController = {
-  async getAll(req: Request, res: Response): Promise<void> {
+  async getAll(req: AuthRequest, res: Response): Promise<void> {
     const filterResult = projectFilterSchema.safeParse(req.query);
     const filters = filterResult.success ? filterResult.data : {};
+    
+ 
+    
     const pagination = parsePagination(req.query);
-    const result = await projectService.findAll(filters, pagination);
+    const result = await projectService.findAll({ ...filters, userId: req.user!.id } as any, pagination);
     res.json(result);
   },
 
-  async getById(req: Request, res: Response): Promise<void> {
+  async getById(req: AuthRequest, res: Response): Promise<void> {
     const project = await projectService.findById(Number(req.params.id));
-    if (!project) {
+    if (!project || project.user?.id !== req.user!.id) {
       res.status(404).json({ message: 'Project not found' });
       return;
     }
     res.json(project);
   },
 
-  async create(req: Request, res: Response): Promise<void> {
+  async create(req: AuthRequest, res: Response): Promise<void> {
     const result = createProjectSchema.safeParse(req.body);
     if (!result.success) {
       res.status(400).json({ errors: result.error.flatten().fieldErrors });
       return;
     }
 
-    const project = await projectService.create(result.data);
+    const project = await projectService.create({ 
+      ...result.data, 
+      user: { id: req.user!.id } 
+    } as any);
     res.status(201).json(project);
   },
 
-  async update(req: Request, res: Response): Promise<void> {
+  async update(req: AuthRequest, res: Response): Promise<void> {
     const result = updateProjectSchema.safeParse(req.body);
     if (!result.success) {
       res.status(400).json({ errors: result.error.flatten().fieldErrors });
+      return;
+    }
+
+    const existingProject = await projectService.findById(Number(req.params.id));
+    if (!existingProject || existingProject.user?.id !== req.user!.id) {
+      res.status(404).json({ message: 'Project not found' });
       return;
     }
 
@@ -47,19 +60,17 @@ export const projectController = {
       Number(req.params.id),
       result.data,
     );
-    if (!project) {
-      res.status(404).json({ message: 'Project not found' });
-      return;
-    }
     res.json(project);
   },
 
-  async delete(req: Request, res: Response): Promise<void> {
-    const deleted = await projectService.delete(Number(req.params.id));
-    if (!deleted) {
+  async delete(req: AuthRequest, res: Response): Promise<void> {
+    const existingProject = await projectService.findById(Number(req.params.id));
+    if (!existingProject || existingProject.user?.id !== req.user!.id) {
       res.status(404).json({ message: 'Project not found' });
       return;
     }
+
+    await projectService.delete(Number(req.params.id));
     res.status(200).json({ message: 'Project deleted successfully' });
   },
 };

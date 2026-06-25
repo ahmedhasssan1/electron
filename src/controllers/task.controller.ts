@@ -14,13 +14,14 @@ export const taskController = {
     const filters = filterResult.success ? filterResult.data : {};
     const pagination = parsePagination(req.query);
 
+
     const result = await taskService.findAll(filters, pagination);
     res.json(result);
   },
 
   async getById(req: AuthRequest, res: Response): Promise<void> {
     const task = await taskService.findById(Number(req.params.id));
-    if (!task) {
+    if (!task || task.project?.user?.id !== req.user!.id) {
       res.status(404).json({ message: 'Task not found' });
       return;
     }
@@ -30,7 +31,7 @@ export const taskController = {
   async create(req: AuthRequest, res: Response): Promise<void> {
     const projectId = Number(req.params.projectId);
     const project = await projectService.findById(projectId);
-    if (!project) {
+    if (!project || project.user?.id !== req.user!.id) {
       res.status(404).json({ message: 'Project not found' });
       return;
     }
@@ -52,26 +53,31 @@ export const taskController = {
       return;
     }
 
-    const task = await taskService.update(Number(req.params.id), result.data);
-    if (!task) {
+    const existingTask = await taskService.findById(Number(req.params.id));
+    if (!existingTask || existingTask.project?.user?.id !== req.user!.id) {
       res.status(404).json({ message: 'Task not found' });
       return;
     }
+
+    const task = await taskService.update(Number(req.params.id), result.data);
     res.json(task);
   },
 
   async delete(req: AuthRequest, res: Response): Promise<void> {
-    const deleted = await taskService.delete(Number(req.params.id));
-    if (!deleted) {
+    const existingTask = await taskService.findById(Number(req.params.id));
+    if (!existingTask || existingTask.project?.user?.id !== req.user!.id) {
       res.status(404).json({ message: 'Task not found' });
       return;
     }
+
+    await taskService.delete(Number(req.params.id));
     res.status(204).send();
   },
+
   async getProjectTasks(req: AuthRequest, res: Response): Promise<void> {
     const projectId = Number(req.params.projectId);
     const project = await projectService.findById(projectId);
-    if (!project) {
+    if (!project || project.user?.id !== req.user!.id) {
       res.status(404).json({ message: 'Project not found' });
       return;
     }
@@ -88,3 +94,4 @@ export const taskController = {
     res.json(result);
   },
 };
+
