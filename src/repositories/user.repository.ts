@@ -6,6 +6,7 @@ import { AppDataSource } from '../config/database';
 
 export interface IUserRepository extends IBaseRepository<User> {
   findByEmail(email: string): Promise<User | null>;
+  updateRefreshToken(userId: number, token: string | null): Promise<void>;
 }
 
 export class UserRepository implements IUserRepository {
@@ -63,5 +64,12 @@ export class UserRepository implements IUserRepository {
   async delete(id: number): Promise<boolean> {
     const result = await this.repo.delete(id);
     return result.affected !== 0;
+  }
+
+  async updateRefreshToken(
+    userId: number,
+    token: string | null,
+  ): Promise<void> {
+    await this.repo.update(userId, { refreshToken: token } as Partial<User>);
   }
 }

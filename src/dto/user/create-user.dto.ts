@@ -11,7 +11,7 @@ export const createUserSchema = z.object({
     .max(255, 'Email must be at most 255 characters'),
   password: z
     .string()
-    .min(6, 'Password must be at least 6 characters')
+    .min(8, 'Password must be at least 8 characters')
     .max(255, 'Password must be at most 255 characters'),
   role: z.enum(['admin', 'member']).optional().default('member'),
 });

@@ -32,6 +32,9 @@ export class User {
   @Column({ type: 'enum', enum: UserRole, default: UserRole.MEMBER })
   role!: UserRole;
 
+  @Column({ type: 'varchar', length: 512, nullable: true })
+  refreshToken!: string | null;
+
   @CreateDateColumn()
   createdAt!: Date;
 

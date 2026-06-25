@@ -36,4 +36,11 @@ export class UserService {
   async delete(id: number): Promise<boolean> {
     return this.userRepo.delete(id);
   }
+
+  async updateRefreshToken(
+    userId: number,
+    token: string | null,
+  ): Promise<void> {
+    await this.userRepo.updateRefreshToken(userId, token);
+  }
 }

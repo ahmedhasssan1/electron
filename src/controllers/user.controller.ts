@@ -2,12 +2,29 @@ import { Request, Response } from 'express';
 import { userService } from '../services';
 import { createUserSchema, updateUserSchema } from '../dto/user';
 import { parsePagination } from '../utils/pagination';
+import { User } from '../models/User';
+
+/** Strip sensitive fields before sending to client */
+function sanitizeUser(user: User): Omit<User, 'password' | 'refreshToken'> {
+  const { password, refreshToken, ...safe } = user;
+  return safe;
+}
 
 export const userController = {
   async getAll(req: Request, res: Response): Promise<void> {
-    const pagination = parsePagination(req.query);
+    const pagination = parsePagination(req.query, [
+      'id',
+      'name',
+      'email',
+      'role',
+      'createdAt',
+      'updatedAt',
+    ]);
     const result = await userService.findAll(pagination);
-    res.json(result);
+    res.json({
+      ...result,
+      data: result.data.map(sanitizeUser),
+    });
   },
 
   async getById(req: Request, res: Response): Promise<void> {
@@ -16,7 +33,7 @@ export const userController = {
       res.status(404).json({ message: 'User not found' });
       return;
     }
-    res.json(user);
+    res.json(sanitizeUser(user));
   },
 
   async create(req: Request, res: Response): Promise<void> {
@@ -35,7 +52,7 @@ export const userController = {
     }
 
     const user = await userService.create({ name, email, password, role });
-    res.status(201).json(user);
+    res.status(201).json(sanitizeUser(user));
   },
 
   async update(req: Request, res: Response): Promise<void> {
@@ -50,7 +67,7 @@ export const userController = {
       res.status(404).json({ message: 'User not found' });
       return;
     }
-    res.json(user);
+    res.json(sanitizeUser(user));
   },
 
   async delete(req: Request, res: Response): Promise<void> {

@@ -14,7 +14,6 @@ export const errorHandler = (
     return;
   }
 
-  // TypeORM errors
   if (err.name === 'QueryFailedError') {
     res.status(409).json({
       message: 'Database operation failed',
@@ -29,8 +28,11 @@ export const errorHandler = (
     return;
   }
 
-  // Fallback
-  console.error('Unexpected error:', err);
+  if (process.env.NODE_ENV !== 'production') {
+    console.error('Unexpected error:', err);
+  } else {
+    console.error('Unexpected error:', err.message);
+  }
   res.status(500).json({
     message: 'Internal server error',
   });
