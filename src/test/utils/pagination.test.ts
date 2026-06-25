@@ -11,7 +11,7 @@ describe('parsePagination', () => {
     });
   });
 
-  it('should parse valid query parameters', () => {
+  it('should Parse  valid query parameters', () => {
     const result = parsePagination({
       page: '3',
       limit: '25',
@@ -32,7 +32,6 @@ describe('parsePagination', () => {
   });
 
   it('should clamp limit between 1 and 100', () => {
-    // "0" is falsy, so the fallback 10 is used, then clamped → 10
     const tooLow = parsePagination({ limit: '0' });
     expect(tooLow.limit).toBe(10);
 
