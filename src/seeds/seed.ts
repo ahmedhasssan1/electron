@@ -8,52 +8,58 @@ async function seed() {
   await AppDataSource.initialize();
   console.log('Database connected for seeding...');
 
-  // Clear existing data
-  await AppDataSource.getRepository(Task).delete({});
-  await AppDataSource.getRepository(Project).delete({});
-  await AppDataSource.getRepository(User).delete({});
+  await AppDataSource.query('TRUNCATE TABLE "tasks" RESTART IDENTITY CASCADE');
+  await AppDataSource.query(
+    'TRUNCATE TABLE "projects" RESTART IDENTITY CASCADE',
+  );
+  await AppDataSource.query('TRUNCATE TABLE "users" RESTART IDENTITY CASCADE');
+  console.log('Tables cleared');
 
-  // Seed Users
   const userRepo = AppDataSource.getRepository(User);
   const hashedPassword = await bcrypt.hash('password123', 10);
 
-  const user1 = userRepo.create({
-    name: 'Ahmed',
-    email: 'ahmed@example.com',
-    password: hashedPassword,
-    role: UserRole.ADMIN,
-  });
-  const user2 = userRepo.create({
-    name: 'Sara',
-    email: 'sara@example.com',
-    password: hashedPassword,
-  });
-  await userRepo.save([user1, user2]);
+  const [user1, user2] = await userRepo.save([
+    userRepo.create({
+      name: 'Ahmed',
+      email: 'ahmed@example.com',
+      password: hashedPassword,
+      role: UserRole.ADMIN,
+    }),
+    userRepo.create({
+      name: 'Sara',
+      email: 'sara@example.com',
+      password: hashedPassword,
+    }),
+  ]);
   console.log('Users seeded');
 
-  // Seed Projects
   const projectRepo = AppDataSource.getRepository(Project);
-  const project1 = projectRepo.create({
-    title: 'Website Redesign',
-    description: 'Redesign the company website',
-    status: ProjectStatus.IN_PROGRESS,
-  });
-  const project2 = projectRepo.create({
-    title: 'Mobile App',
-    description: 'Build a cross-platform mobile app',
-    status: ProjectStatus.TODO,
-  });
-  const project3 = projectRepo.create({
-    title: 'API Documentation',
-    description: 'Write API docs for v2',
-    status: ProjectStatus.DONE,
-  });
-  await projectRepo.save([project1, project2, project3]);
+
+  const [project1, project2, project3] = await projectRepo.save([
+    projectRepo.create({
+      title: 'Website Redesign',
+      description: 'Redesign the company website',
+      status: ProjectStatus.IN_PROGRESS,
+      user: user1,
+    }),
+    projectRepo.create({
+      title: 'Mobile App',
+      description: 'Build a cross-platform mobile app',
+      status: ProjectStatus.TODO,
+      user: user1,
+    }),
+    projectRepo.create({
+      title: 'API Documentation',
+      description: 'Write API docs for v2',
+      status: ProjectStatus.DONE,
+      user: user2,
+    }),
+  ]);
   console.log('Projects seeded');
 
-  // Seed Tasks
   const taskRepo = AppDataSource.getRepository(Task);
-  const tasks = [
+
+  await taskRepo.save([
     taskRepo.create({
       title: 'Design homepage mockup',
       description: 'Figma mockup for new homepage',
@@ -100,11 +106,10 @@ async function seed() {
       project: project3,
       dueDate: '2026-06-20',
     }),
-  ];
-  await taskRepo.save(tasks);
+  ]);
   console.log('Tasks seeded');
 
-  console.log('Seed completed!');
+  console.log(' Seed completed!');
   await AppDataSource.destroy();
 }
 
