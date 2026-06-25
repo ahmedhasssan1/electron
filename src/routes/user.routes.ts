@@ -8,7 +8,7 @@ const router = Router();
 router.get('/', requireRole(UserRole.ADMIN), userController.getAll);
 router.get('/:id', requireRole(UserRole.ADMIN), userController.getById);
 router.post('/', requireRole(UserRole.ADMIN), userController.create);
-router.put('/:id', requireRole(UserRole.ADMIN), userController.update);
+router.patch('/:id', requireRole(UserRole.ADMIN), userController.update);
 router.delete('/:id', requireRole(UserRole.ADMIN), userController.delete);
 
 export default router;

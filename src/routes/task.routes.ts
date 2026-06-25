@@ -1,7 +1,5 @@
 import { Router } from 'express';
 import { taskController } from '../controllers/task.controller';
-import { requireRole } from '../middleware/auth.middleware';
-import { UserRole } from '../models/User';
 
 const router = Router({ mergeParams: true });
 
@@ -10,10 +8,9 @@ router.get('/:id', taskController.getById);
 router.get('/projects/:projectId', taskController.getProjectTasks);
 router.post(
   '/projects/:projectId',
-  requireRole(UserRole.ADMIN),
   taskController.create,
 );
-router.patch('/:id', requireRole(UserRole.ADMIN), taskController.update);
-router.delete('/:id', requireRole(UserRole.ADMIN), taskController.delete);
+router.patch('/:id', taskController.update);
+router.delete('/:id', taskController.delete);
 
 export default router;

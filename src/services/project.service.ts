@@ -12,13 +12,17 @@ export class ProjectService {
   constructor(private readonly projectRepo: IBaseRepository<Project>) {}
 
   async findAll(
-    filters: ProjectFilterDTO,
+    filters: ProjectFilterDTO & { userId?: number },
     params: PaginationParams,
   ): Promise<PaginatedResult<Project>> {
     const where: FindOptionsWhere<Project> = {};
 
     if (filters.status) {
       Object.assign(where, { status: filters.status });
+    }
+    
+    if (filters.userId) {
+      Object.assign(where, { user: { id: filters.userId } });
     }
 
     return this.projectRepo.findAll(where, params);
