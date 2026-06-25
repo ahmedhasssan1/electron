@@ -37,7 +37,9 @@ export const requireRole = (...roles: UserRole[]) => {
     }
 
     if (!roles.includes(req.user.role)) {
-      res.status(403).json({ message: 'Insufficient permissions' });
+      res
+        .status(403)
+        .json({ message: 'you are not alowed to make this action' });
       return;
     }
 
