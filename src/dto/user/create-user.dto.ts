@@ -7,7 +7,7 @@ export const createUserSchema = z.object({
     .max(255, 'Name must be at most 255 characters'),
   email: z
     .string()
-    .email('Invalid email format')
+    .email({ message: 'Invalid email format' })
     .max(255, 'Email must be at most 255 characters'),
   password: z
     .string()
