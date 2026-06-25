@@ -12,8 +12,15 @@ export const taskController = {
   async getAll(req: AuthRequest, res: Response): Promise<void> {
     const filterResult = taskFilterSchema.safeParse(req.query);
     const filters = filterResult.success ? filterResult.data : {};
-    const pagination = parsePagination(req.query);
-
+    const pagination = parsePagination(req.query, [
+      'id',
+      'title',
+      'status',
+      'priority',
+      'dueDate',
+      'createdAt',
+      'updatedAt',
+    ]);
 
     const result = await taskService.findAll(filters, pagination);
     res.json(result);
@@ -84,7 +91,15 @@ export const taskController = {
 
     const filterResult = taskFilterSchema.safeParse(req.query);
     const filters = filterResult.success ? filterResult.data : {};
-    const pagination = parsePagination(req.query);
+    const pagination = parsePagination(req.query, [
+      'id',
+      'title',
+      'status',
+      'priority',
+      'dueDate',
+      'createdAt',
+      'updatedAt',
+    ]);
 
     const result = await taskService.findAllByProject(
       projectId,
@@ -94,4 +109,3 @@ export const taskController = {
     res.json(result);
   },
 };
-

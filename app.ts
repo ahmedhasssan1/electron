@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import userRoutes from './src/routes/user.routes';
 import authRoutes from './src/routes/auth.routes';
 import projectRoutes from './src/routes/project.routes';
@@ -9,11 +11,32 @@ import { errorHandler } from './src/middleware/errorHandler';
 
 const app = express();
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Security headers
+app.use(helmet());
 
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',')
+  : ['http://localhost:3000'];
+app.use(
+  cors({
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }),
+);
+
+app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { message: 'Too many requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use('/auth', authLimiter);
 app.use('/auth', authRoutes);
 app.use(authMiddleware);
 app.use('/users', userRoutes);
@@ -24,7 +47,6 @@ app.get('/', (_req, res) => {
   res.json({ message: 'api is running ' });
 });
 
-// Global error handler (must be last)
 app.use(errorHandler);
 
 export default app;
