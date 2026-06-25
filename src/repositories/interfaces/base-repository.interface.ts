@@ -1,11 +1,6 @@
 import { PaginationParams, PaginatedResult } from '../../utils/pagination';
 import { FindOptionsWhere } from 'typeorm';
 
-/**
- * Interface Segregation Principle: split into read/write focused interfaces.
- * Clients should not depend on methods they don't use.
- */
-
 export interface IReadRepository<T> {
   findAll(
     filters?: FindOptionsWhere<T>,

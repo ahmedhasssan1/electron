@@ -78,7 +78,10 @@ export class TaskRepository implements ITaskRepository {
   }
 
   async findById(id: number): Promise<Task | null> {
-    return this.repo.findOne({ where: { id } });
+    return this.repo.findOne({ 
+      where: { id },
+      relations: ['project', 'project.user']
+    });
   }
 
   async create(data: Partial<Task>): Promise<Task> {

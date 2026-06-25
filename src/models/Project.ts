@@ -4,7 +4,9 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
 } from 'typeorm';
+import { User } from './User';
 
 export enum ProjectStatus {
   TODO = 'todo',
@@ -31,4 +33,7 @@ export class Project {
 
   @UpdateDateColumn()
   updatedAt!: Date;
+
+  @ManyToOne(() => User, (user) => user.projects, { nullable: false, onDelete: 'CASCADE' })
+  user!: User;
 }

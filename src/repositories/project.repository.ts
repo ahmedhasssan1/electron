@@ -38,7 +38,7 @@ export class ProjectRepository implements IBaseRepository<Project> {
   }
 
   async findById(id: number): Promise<Project | null> {
-    return this.repo.findOneBy({ id });
+    return this.repo.findOne({ where: { id }, relations: ['user'] });
   }
 
   async create(data: Partial<Project>): Promise<Project> {
